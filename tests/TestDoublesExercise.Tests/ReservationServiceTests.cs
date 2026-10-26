@@ -128,13 +128,21 @@ public sealed class ReservationServiceTests
         Assert.Empty(sender.SentReservations);
     }
 
-    [Fact(Skip = "TODO: leeren Veranstaltungscode testen")]
+    [Fact]
     public void Reserve_WithEmptyEventCode_ThrowsBeforeCallingDependencies()
     {
         // Arrange: Doubles, deren Aufrufe sich prüfen lassen.
+        var availability = new Stub("EVT-1", 2);
+        var repo = new Repository();
+        var sender = new Spy();
+        var service = new ReservationService(availability, repo, sender);
+
         // Act:     Mit leerem Veranstaltungscode reservieren.
+        Assert.Throws<ArgumentException>(() => service.Reserve("oalgo.martines@empathy.y2k", "", 2));
         // Assert:  ArgumentException; keine Abhängigkeit wurde aufgerufen.
-        throw new NotImplementedException();
+        Assert.Equal(0, availability.CallCount);
+        Assert.Empty(repo.SavedReservations);
+        Assert.Empty(sender.SentReservations);
     }
 
     [Fact]
@@ -156,13 +164,21 @@ public sealed class ReservationServiceTests
         sender.Verify(s => s.Send(It.IsAny<Reservation>()), Times.Never());
     }
 
-    [Fact(Skip = "TODO: fehlgeschlagenes Speichern testen")]
+    [Fact]
     public void Reserve_WhenSavingFails_DoesNotSendConfirmation()
     {
         // Arrange: Stub mit genügend Plätzen, Repository liefert false, eigener Spy.
+        var availability = new Stub("EVT-1", 2);
+        var repo = new Repository(false);
+        var sender = new Spy();
+        var service = new ReservationService(availability, repo, sender);
+        
         // Act:     Reservierung versuchen.
+        var result = service.Reserve("oalgo.martines@empathy.y2k", "EVT-1", 2);
         // Assert:  Ergebnis ist false und der Spy hat keinen Aufruf aufgezeichnet.
-        throw new NotImplementedException();
+        Assert.Equal(0, availability.CallCount);
+        Assert.Empty(repo.SavedReservations);
+        Assert.Empty(sender.SentReservations);
     }
 
     [Fact(Skip = "TODO: Moq für fehlenden Speicherversuch verwenden")]
