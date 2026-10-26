@@ -2,16 +2,55 @@ namespace TestDoublesExercise.Tests;
 
 public sealed class ReservationServiceTests
 {
+    private sealed class Stub(IReadOnlyDictionary<string, int> availableSeatsByEventCode) : ISeatAvailability
+    {
+        public Stub(string eventCode, int availableSeats)
+        : this(new Dictionary<string, int> {[eventCode] = availableSeats} )
+        {
+            
+        }
+       public int CallCount { get; private set; }
+
+       public int GetAvailableSeats(string eventCode)
+       {
+           CallCount++;
+           return availableSeatsByEventCode.GetValueOrDefault(eventCode);
+       }
+       
+    }
+
+    private sealed class Repository(bool trySaveResult = true) : IReservationRepository
+    {
+        public List<Reservation> SavedReservations { get; } = [];
+
+        public bool TrySave(Reservation reservation)
+        {
+            SavedReservations.Add(reservation);
+            return trySaveResult;
+        }
+    }
+
+    private sealed class Spy : IConfirmationSender
+    {
+        private readonly List<Reservation> _sentReservations = [];
+        public IReadOnlyList<Reservation> SentReservations => _sentReservations;
+        public void Send(Reservation reservation) => _sentReservations.Add(reservation);
+
+    }
+    
     // Entfernt Skip jeweils erst, wenn ihr den Test implementiert habt.
     // Die Beispiele für Stub, Spy und Moq stehen in TestDoubleExamples.cs.
 
-    [Fact(Skip = "TODO: eigenen Verfügbarkeits-Stub schreiben")]
+    [Fact]
     public void Reserve_WithEnoughSeats_ReturnsTrue()
     {
         // Arrange: Stub mit 3 freien Plätzen, Repository mit erfolgreichem Speichern,
         //          eigener Sender-Spy und ReservationService.
+        
         // Act:     2 Plätze reservieren.
+        
         // Assert:  Ergebnis ist true.
+        
         throw new NotImplementedException();
     }
 
@@ -95,4 +134,5 @@ public sealed class ReservationServiceTests
         // Assert:  Ergebnis ist false; kein Batch-Speichern und keine Bestätigung.
         throw new NotImplementedException();
     }
+    
 }
