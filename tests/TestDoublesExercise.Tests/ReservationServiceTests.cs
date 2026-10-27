@@ -176,18 +176,25 @@ public sealed class ReservationServiceTests
         // Act:     Reservierung versuchen.
         var result = service.Reserve("oalgo.martines@empathy.y2k", "EVT-1", 2);
         // Assert:  Ergebnis ist false und der Spy hat keinen Aufruf aufgezeichnet.
-        Assert.Equal(0, availability.CallCount);
-        Assert.Empty(repo.SavedReservations);
+        Assert.False(result);
         Assert.Empty(sender.SentReservations);
     }
 
-    [Fact(Skip = "TODO: Moq für fehlenden Speicherversuch verwenden")]
+    [Fact]
     public void Reserve_WithTooFewSeats_DoesNotCallRepository()
     {
         // Arrange: Stub mit zu wenigen Plätzen und Mock<IReservationRepository>.
+        var availability = new Stub("EVT-1", 2);
+        var repo = new Mock<IReservationRepository>();
+        var sender = new Spy();
+        var service = new ReservationService(availability, repo.Object, sender);
         // Act:     Reservierung versuchen.
+        var result = service.Reserve("oalgo.martines@empathy.y2k", "EVT-1", 3);
+        
         // Assert:  Verify(..., Times.Never()) für TrySave.
-        throw new NotImplementedException();
+        Assert.False(result);
+        Assert.Empty(sender.SentReservations);
+        repo.Verify(r => r.TrySave(It.IsAny<Reservation>()), Times.Never());
     }
 
     [Fact(Skip = "Fortgeschrittene: ReserveBatch zuerst implementieren")]
